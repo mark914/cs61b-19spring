@@ -48,17 +48,35 @@ public class MyHashMap<K,V> implements Map61B<K,V>{
         threshold = lF;
         n = 0;
     }
-
-    private int hash(K key) {
-        return (key.hashCode() & 0x7fffffff) % m; //get from https://algs4.cs.princeton.edu/34hash/SeparateChainingLiteHashST.java.html
+    private int hash(K key, int length) {
+        if (key == null) {
+            throw new IllegalArgumentException();
+        }
+        return (key.hashCode() & 0x7fffffff) % length; //get from https://algs4.cs.princet
     }
 
+    private int hash(K key) {
+        return hash(key, m);
+    }
+
+    private void put(K key, V val, Node<K,V>[] x) {
+        if (key == null) {
+            throw new UnsupportedOperationException();
+        }
+        int i = hash(key, x.length);
+        for(Node y = x[i]; y != null; y = y.next) {
+            if (key.equals(y.key)) {
+                y.val = val;
+            }
+        }
+        x[i] = new Node(key, val, x[i]);
+    }
     private void resize(int chains) {
         Node<K,V>[] temp = (Node<K,V>[]) new Object[chains];
-        for(int i = 0; i < m; i += 1) {
-            temp[i] = st[i];
-        }
         m = chains;
+        for(K key: keySet()) {
+            put(key, get(key), temp);
+        }
         st = temp;
     }
     @Override
@@ -69,11 +87,17 @@ public class MyHashMap<K,V> implements Map61B<K,V>{
 
     @Override
     public boolean containsKey(K key) {
+        if (key == null) {
+            throw new IllegalArgumentException();
+        }
         return get(key) != null;
     }
 
     @Override
     public V get(K key) {
+        if (key == null) {
+            throw new IllegalArgumentException();
+        }
         int index = hash(key);
         for (Node x = st[index]; x != null; x = x.next) {
             if (key.equals(x.key)) {
